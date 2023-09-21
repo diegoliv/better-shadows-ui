@@ -1,59 +1,55 @@
 <template>
-  <div class="app-wrapper">
-    <div class="app-ui" v-show="isElSelected">
-      <Preview 
-        :shadow="shadowCSS" 
-        :bg-color="bgColor"
-        :box-color="boxColor"
-        @setbgcolor="setBgColor"
-        @setboxcolor="setBoxColor"
-        @openpresets="isPresetsModalOpen = true"
-      />
-      <div class="controls">
-        <Control id="angle" label="Light Position" v-model="angle" min="0" max="360" suffix="deg" />
-        <Control id="distance" label="Distance" v-model="distance" min="1" max="1000" />
-        <Control id="intensity" label="Intensity" v-model="intensity" min="0.1" max="1" />
-        <Control id="sharpness" label="Sharpness" v-model="sharpness" min="0.1" max="1" />
-        <ColorControl id="color" label="Color" v-model="color" />
-      </div>
-      <Transition>
-        <div 
-          class="presets-modal-wrapper"
-          v-if="isPresetsModalOpen"
-        >
-          <div class="presets-modal-backdrop"></div>
-          <PresetsModal
-            @selected="setPreset"
-            @close="isPresetsModalOpen = false"
-          />
-        </div>
-      </Transition>
+  <div class="app-wrapper" :style="boxShadow">
+    <AppHeader />
+    <Preview 
+      :shadow="shadowCSS" 
+      :bg-color="bgColor"
+      :box-color="boxColor"
+      @setbgcolor="setBgColor"
+      @setboxcolor="setBoxColor"
+      @openpresets="isPresetsModalOpen = true"
+    />
+    <div class="controls">
+      <Control id="angle" label="Light Position" v-model="angle" min="0" max="360" suffix="deg" />
+      <Control id="distance" label="Distance" v-model="distance" min="1" max="1000" />
+      <Control id="intensity" label="Intensity" v-model="intensity" min="0.1" max="1" />
+      <Control id="sharpness" label="Sharpness" v-model="sharpness" min="0.1" max="1" />
+      <ColorControl id="color" label="Color" v-model="color" />
     </div>
-    <NotSelected />
+    <Transition>
+      <div 
+        class="presets-modal-wrapper"
+        v-if="isPresetsModalOpen"
+      >
+        <div class="presets-modal-backdrop"></div>
+        <PresetsModal
+          @selected="setPreset"
+          @close="isPresetsModalOpen = false"
+        />
+      </div>
+    </Transition>
   </div>
 </template>
 
 <script>
 import { getSmoothShadow } from 'smooth-shadow';
 
+import AppHeader from './Components/AppHeader.vue';
 import Preview from './Components/Preview.vue';
 import Control from './Components/Control.vue';
 import ColorControl from './Components/ColorControl.vue';
 import PresetsModal from './Components/PresetsModal.vue';
-import NotSelected from "./Components/NotSelected.vue";
 
 export default {
   components: {
+    AppHeader,
     Preview,
     Control,
     ColorControl,
     PresetsModal,
-    NotSelected
   },
   data() {
     return {
-      isElSelected: false,
-      selectedEl: null,
       selectedStyle: null,
       angle: 0,
       intensity: 0.2,
@@ -62,11 +58,8 @@ export default {
       color: { r: 0, g: 0, b: 0, a: 1 },
       bgColor: { r: 213, g: 231, b: 250, a: 1 },
       boxColor: { r: 255, g: 255, b: 255, a: 1 },
-      isPresetsModalOpen: false
+      isPresetsModalOpen: false,
     }
-  },
-  mounted() {
-    webflow.subscribe('selectedelement', this.selectedElementCallback);
   },
   computed: {
     shadowCSS() {
@@ -79,28 +72,12 @@ export default {
         color: [r,g,b],
         lightPosition: [x, y]
       })      
+    },
+    boxShadow() {
+      return `box-shadow: ${this.shadowCSS};`;
     }
   },
   methods: {
-    async selectedElementCallback(element) {
-      if (element) {
-        this.isElSelected = true;
-        this.selectedEl = element;
-        const styles = await element.getStyles();
-
-        if (!styles || styles.length === 0) {
-          return;
-        }
-
-        // get last style from the list
-        const style = styles[styles.length - 1];
-        this.selectedStyle = style;
-      } else {
-        this.isElSelected = false;
-        this.selectedEl = null;
-        this.selectedStyle = null;
-      }
-    },
     degreesToCoordinates(degrees) {
       // Convert degrees to radians
       const radians = ((degrees-90) * Math.PI) / 180;
@@ -134,32 +111,20 @@ export default {
       this.isPresetsModalOpen = false;
     }
   },
-  watch: {
-    async shadowCSS() {
-      this.selectedStyle.setProperties({ 'box-shadow': this.shadowCSS });
-      await this.selectedStyle.save();
-    }
-  }
 }
 </script>
 
 <style lang="scss">
-  .app-ui {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 460px;
-    background-color: var(--background1);
-  }
   .app-wrapper {
     position:relative;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    height: 460px;
+    width: 320px;
+    height: 500px;
     overflow: hidden;
+    background-color: var(--background1);
     .controls {
       width: 100%;
       flex-grow: 1;

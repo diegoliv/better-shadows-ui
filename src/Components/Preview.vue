@@ -132,7 +132,7 @@ export default {
 
   .preview-footer {
     position: absolute;
-    top: 214px;
+    top: 254px;
     left: 0;
     width: 100%;
     padding: 0 16px 16px;
